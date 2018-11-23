@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang = "en">
+<head>
+    <title>myCrossfilter</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="dc.css">
+</head>
+<body>
+    <div class = "container">
+    	<p></p>
+    	<p>此demo模仿股票数据，open指开盘价，close指收盘价，如果收盘价高于开盘价，则认为“good”，反之为“bad”</p>
+        <div id = "open-bar-chart"></div>
+        <div id = "close-bar-chart"></div>
+        <iv></iv>
+        <div id = "volume-pie-chart"></div>
+
+        <script type="text/javascript" src="d3.js"></script>
+        <script type="text/javascript" src="crossfilter.js"></script>
+        <script type="text/javascript" src="dc.js"></script>
+
+        <script type="text/javascript">
+            var openChart = dc.barChart("#open-bar-chart")
+                                .xAxisLabel('time')
+                                .yAxisLabel('open');
+            var closeChart = dc.barChart("#close-bar-chart")
+                                .xAxisLabel('time')
+                                .yAxisLabel('close');
+            var volumeChart = dc.pieChart("#volume-pie-chart");
+
+            var data = [
+                {"time":"01","open":10,"close":10,"volume":0},
+                {"time":"02","open":6,"close":7,"volume":1},
+                {"time":"03","open":8,"close":7,"volume":-1},
+                {"time":"04","open":5,"close":8,"volume":3},
+                {"time":"05","open":10,"close":1,"volume":-9},
+                {"time":"06","open":8,"close":6,"volume":-2},
+                {"time":"07","open":4,"close":8,"volume":4}
+            ];
+
+         
+                
+
+            var ndx = crossfilter(data);
+            var timeDimension = ndx.dimension(function(d){return d.time;});
+            var timeDimension1 = ndx.dimension(function(d){return d.time;});
+            var openGroup = timeDimension.group().reduceSum(function(d){return d.open;});                
+            var closeGroup = timeDimension1.group().reduceSum(function(d){return d.close;});
+                
+            openChart
+                .width(300).height(200)
+                .dimension(timeDimension)
+                .group(openGroup)
+                .x(d3.scaleBand())
+                .xUnits(dc.units.ordinal)
+                .elasticX(false)
+                .elasticY(false)
+                .colors(["orange"]);
+
+            closeChart
+                .width(300).height(200)
+                .dimension(timeDimension1)
+                .group(closeGroup)
+                .x(d3.scaleBand())
+                .xUnits(dc.units.ordinal)
+                .elasticX(true)
+                .elasticY(true)
+                .colors(["red"]);
+
+            var judgement = ndx.dimension(function(d){
+                if(d.volume >  0){
+                    return "good";
+                }else{
+                    return "bad";
+                    }
+                });
+            var judgementGroup = judgement.group();
+            volumeChart
+                .width(320)
+                .height(320)
+                .radius(120)
+                .innerRadius(40)
+                .dimension(judgement)
+                .group(judgementGroup)
+                
+                
+            dc.renderAll();
+   
+        </script>
+    </div>
+</body>
+</html>
